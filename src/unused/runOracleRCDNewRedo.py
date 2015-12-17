@@ -1,7 +1,6 @@
+import datetime
 import logging
 import random
-
-import datetime
 
 from causality.citest.CITest import Oracle
 from causality.learning import ModelEvaluation
@@ -10,7 +9,7 @@ from causality.model.Distribution import MarginalDistribution, ConstantDistribut
 from causality.model.Schema import Schema
 from causality.modelspace import ModelGenerator
 from causality.modelspace import SchemaGenerator
-from shlee.RCDLightNew import RCDLightNew
+from shlee.RCDLight import RCDLight
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.ERROR)
@@ -27,13 +26,15 @@ class RandCard(MarginalDistribution):
         return Schema.ONE if random.random() < 0.5 else Schema.MANY
 
 
-print('setting',numEntities, numRelationships, numDependencies, hopThreshold, rcdDepth)
+print('setting', numEntities, numRelationships, numDependencies, hopThreshold, rcdDepth)
 COMPARE = True
 header = True
 i = 0
 while i < 100:
     # Parameters
-    schema = SchemaGenerator.generateSchema(numEntities, numRelationships,entityAttrDistribution=ConstantDistribution(2),relationshipAttrDistribution=ConstantDistribution(1),
+    schema = SchemaGenerator.generateSchema(numEntities, numRelationships,
+                                            entityAttrDistribution=ConstantDistribution(2),
+                                            relationshipAttrDistribution=ConstantDistribution(1),
                                             cardinalityDistribution=RandCard(),
                                             allowCycles=True,
                                             oneRelationshipPerPair=True)
@@ -52,13 +53,13 @@ while i < 100:
         rcd.identifyUndirectedDependencies()
         rcd.orientDependencies()
         b = datetime.datetime.now()
-        c = b-a
+        c = b - a
 
-    rcdl = RCDLightNew(schema, oracle, hopThreshold, depth=rcdDepth)
+    rcdl = RCDLight(schema, oracle, hopThreshold, depth=rcdDepth)
     # rcdl = RCDLightNew(schema, oracle, hopThreshold, depth=rcdDepth)
     rcdl.identify_undirected_dependencies()
-    assert ModelEvaluation.skeletonPrecision(model, rcdl.undirected_dependencies) == 1.0
-    assert ModelEvaluation.skeletonRecall(model, rcdl.undirected_dependencies) == 1.0
+    assert ModelEvaluation.skeletonPrecision(model, rcdl.undirectedDependencies) == 1.0
+    assert ModelEvaluation.skeletonRecall(model, rcdl.undirectedDependencies) == 1.0
     rcdl.orient_dependencies(old_mode=True, simultaneous=True)
 
     # rcdl2 = RCDLightNew(schema, oracle, hopThreshold, depth=rcdDepth)
@@ -66,33 +67,34 @@ while i < 100:
     # rcdl2.orient_dependencies(old_mode=True, simultaneous=True)
 
     if COMPARE:
-        assert ModelEvaluation.orientedRecall(model, rcdl.oriented_dependencies) >= ModelEvaluation.orientedRecall(
-            model,
-            rcd.orientedDependencies)
+        assert ModelEvaluation.orientedRecall(model, rcdl.orientedDependencies) >= ModelEvaluation.orientedRecall(
+                model,
+                rcd.orientedDependencies)
         # if ModelEvaluation.orientedRecall(model, rcdl.oriented_dependencies) > ModelEvaluation.orientedRecall(model,
         #                                                                                                       rcd.orientedDependencies):
         #     print('beat it!')
         #     print(schema)
         #     print(model.dependencies)
-    assert ModelEvaluation.orientedPrecision(model, rcdl.oriented_dependencies) == 1.0
+    assert ModelEvaluation.orientedPrecision(model, rcdl.orientedDependencies) == 1.0
     if COMPARE:
         if header:
-            print('poten','rcdl_p2_ci', 'rcdl_num_rut', 'rcd_ut_searched', 'rcd_ut_found', 'rcd_ci_phase2', 'rcd_agg_V2', 'rcd_agg_E2','time')
+            print('poten', 'rcdl_p2_ci', 'rcdl_num_rut', 'rcd_ut_searched', 'rcd_ut_found', 'rcd_ci_phase2',
+                  'rcd_agg_V2', 'rcd_agg_E2', 'time')
             header = False
         # print(rcdl.ci_record['Phase I'], rcdl.ci_record['Phase II'], rcd.ciRecord['Phase I'], rcd.ciRecord['Phase II'], rcd.full_num_agg_nodes,
         #       rcd.full_num_agg_edges, rcd.after_num_agg_nodes, rcd.after_num_agg_edges)
-        to_print = [rcdl.ci_record['num_poten'],
-            rcdl.ci_record['Phase II'],
-            rcdl.ci_record['num_rut'],
-            rcd.utRecord['searched'],
-            rcd.utRecord['found'],
-            rcd.ciRecord['Phase II'],
-            rcd.after_num_agg_nodes,
-            rcd.after_num_agg_edges,
-            c.seconds]
+        to_print = [rcdl.ciRecord['num_poten'],
+                    rcdl.ciRecord['Phase II'],
+                    rcdl.ciRecord['num_rut'],
+                    rcd.utRecord['searched'],
+                    rcd.utRecord['found'],
+                    rcd.ciRecord['Phase II'],
+                    rcd.after_num_agg_nodes,
+                    rcd.after_num_agg_edges,
+                    c.seconds]
         print(*to_print)
-    # else:
-    #     if header:
-    #         print('rcdl_p1_ci', 'rcdl_p2_ci', 'rcdl2_p2_ci')
-    #         header = False
-    #     print(rcdl.ci_record['Phase I'], rcdl.ci_record['Phase II'], rcdl2.ci_record['Phase II'])
+        # else:
+        #     if header:
+        #         print('rcdl_p1_ci', 'rcdl_p2_ci', 'rcdl2_p2_ci')
+        #         header = False
+        #     print(rcdl.ci_record['Phase I'], rcdl.ci_record['Phase II'], rcdl2.ci_record['Phase II'])

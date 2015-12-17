@@ -1,326 +1,465 @@
 import collections
 import itertools
 import numbers
-import logging
-
-import networkx
+import random
 
 from causality.dseparation import AbstractGroundGraph
+from causality.model.Model import Model
 from causality.model.RelationalDependency import RelationalVariable, RelationalDependency
+from causality.model.Schema import Schema
 from causality.modelspace import RelationalSpace
 
-logger = logging.getLogger(__name__)
 
-
-class SchemaDependencyWrapper:
-    def __init__(self, schema, dependencies):
-        self.schema = schema
-        self.dependencies = dependencies
-
-
+# (Improved) RCD-Light algorithm
+# "On Learning Causal Models from Relational Data (In Proc. of AAAI-2016)"
+# Sanghack Lee & Vasant Honavar
+#
+# This algorithm is compatible with RCD from
+# "A Sound and Complete Algorithm for Learning Causal Models from Relational Data" (In Proc. of UAI-2013)
+#
 class RCDLight(object):
-    '''
-    RCD-Light (Lee and Honavar), directly modified from RCD by Maier et al.
-    '''
+    def __init__(self, schema, ci_tester, hop_threshold):
+        if not isinstance(hop_threshold, numbers.Integral) or hop_threshold < 0:
+            raise Exception("Hop threshold must be a non-negative integer: found {}".format(hop_threshold))
 
-    def __init__(self, schema, citest, hopThreshold, depth=None):
-        if not isinstance(hopThreshold, numbers.Integral) or hopThreshold < 0:
-            raise Exception("Hop threshold must be a non-negative integer: found {}".format(hopThreshold))
-        if depth is not None and (not isinstance(depth, numbers.Integral) or depth < 0):
-            raise Exception("Depth must be a non-negative integer or None: found {}".format(depth))
-
-        self.schema = schema
-        self.citest = citest
-        self.hopThreshold = hopThreshold
-        self.depth = depth
-        self.potentialDependencySorter = lambda l: l  # no sorting by default
-        self.generateSepsetCombinations = itertools.combinations
+        self._schema = schema
+        self._ci_tester = ci_tester
+        self._hop_threshold = hop_threshold
+        self._ci_cache = dict()
+        self._sepsets = dict()
+        self._causes = None
         self.undirectedDependencies = None
         self.orientedDependencies = None
-        self.ciTestCache = {}
-        self.ciRecord = {'Phase I': 0, 'Phase II': 0, 'total': 0}
-        self.resetEdgeOrientationUsage()
-        # RCDL
-        self.parents = None
-        self.non_colliders = set()
+        self.ciRecord = collections.defaultdict(lambda: 0)
 
     def identifyUndirectedDependencies(self):
-        logger.info('Phase I: identifying undirected dependencies')
-        potentialDeps = RelationalSpace.getRelationalDependencies(self.schema, self.hopThreshold,
-                                                                  includeExistence=False)
-        potentialDeps = self.potentialDependencySorter(potentialDeps)
+        potential_deps = RelationalSpace.getRelationalDependencies(self._schema, self._hop_threshold)
 
-        keyfunc = lambda d: d.relVar2
-        self.parents = {k: set(g.relVar1 for g in gs) for k, gs in
-                        itertools.groupby(sorted(potentialDeps, key=keyfunc), key=keyfunc)}
+        keyfunc = lambda dep: dep.relVar2
+        self._causes = {effect: set(cause.relVar1 for cause in causes)
+                        for effect, causes in
+                        itertools.groupby(sorted(potential_deps, key=keyfunc), key=keyfunc)}
 
-        # Keep track of separating sets
-        self.sepsets = {}
-
-        self.maxDepthReached = -1
-        if self.depth is None:
-            self.depth = max(len(v) for v in self.parents.values())
-
-        logger.info("Number of potentialDeps %d", len(potentialDeps))
-        remainingDeps = potentialDeps[:]
-        # Check for independencies
-        for conditioningSetSize in range(self.depth + 1):
-            self.maxDepthReached = conditioningSetSize
-            testedAtCurrentSize = False
-            logger.info("Conditioning set size %d", conditioningSetSize)
-            logger.debug("remaining dependencies %s", remainingDeps)
-            for potentialDep in potentialDeps:
-                logger.debug("potential dependency %s", potentialDep)
-                if potentialDep not in remainingDeps:
+        to_be_tested = set(potential_deps)
+        for d in itertools.count():
+            for dep in list(to_be_tested):  # remove-safe loop
+                if dep not in to_be_tested:
                     continue
-                relVar1, relVar2 = potentialDep.relVar1, potentialDep.relVar2
-                sepset, curTestedAtCurrentSize = self.findSepset(relVar1, relVar2, conditioningSetSize,
-                                                                 phaseForRecording='Phase I')
-                testedAtCurrentSize = testedAtCurrentSize or curTestedAtCurrentSize
+
+                cause, effect = dep.relVar1, dep.relVar2
+                sepset, tested = self._find_sepset_with_size(cause, effect, d, 'Phase I')
+                if not tested:
+                    to_be_tested.remove(dep)
                 if sepset is not None:
-                    logger.debug("removing edge %s -- %s", relVar1, relVar2)
-                    self.sepsets[relVar1, relVar2] = set(sepset)
-                    self.sepsets[relVar2, relVar1] = set(sepset)
-                    remainingDeps.remove(potentialDep)
-                    potentialDepReverse = potentialDep.reverse()
-                    remainingDeps.remove(potentialDepReverse)
-                    self.removeDependency(potentialDep)
-            if not testedAtCurrentSize:  # exit early, no possible sepsets of a larger size
+                    dep_reversed = dep.reverse()
+                    to_be_tested -= {dep, dep_reversed}
+                    self._causes[dep.relVar2].remove(dep.relVar1)
+                    self._causes[dep_reversed.relVar2].remove(dep_reversed.relVar1)
+            if not to_be_tested:
                 break
-            potentialDeps = remainingDeps[:]
 
-        self.undirectedDependencies = remainingDeps
-        logger.info("Undirected dependencies: %s", self.undirectedDependencies)
-        logger.info(self.ciRecord)
+        self.undirectedDependencies = {RelationalDependency(c, e) for e, cs in self._causes.items() for c in cs}
+        return set(self.undirectedDependencies)
 
-    def findSepset(self, relVar1, relVar2, conditioningSetSize, phaseI=True, phaseForRecording='Phase I'):
-        assert len(relVar2.path) == 1
-        neighbors2 = set(self.parents[relVar2])
-        logger.debug("neighbors2 %s", neighbors2)
-        if relVar1 in neighbors2:
-            neighbors2.remove(relVar1)
-        testedAtCurrentSize = False
-        if conditioningSetSize <= len(neighbors2):
-            for candidateSepSet in self.generateSepsetCombinations(neighbors2, conditioningSetSize):
-                logger.debug("checking %s _||_ %s | { %s }", relVar1, relVar2, candidateSepSet)
-                testedAtCurrentSize = True
-                ciTestKey = (relVar1, relVar2, tuple(sorted(list(candidateSepSet))))
-                if ciTestKey not in self.ciTestCache:
-                    self.ciRecord[phaseForRecording] += 1
-                    depthStr = 'depth {}'.format(len(candidateSepSet))
-                    if phaseI:
-                        self.ciRecord.setdefault(depthStr, 0)
-                        self.ciRecord[depthStr] += 1
-                    self.ciRecord['total'] += 1
-                    isCondInd = self.citest.isConditionallyIndependent(relVar1, relVar2, candidateSepSet)
-                    self.ciTestCache[ciTestKey] = isCondInd
+    def _enumerate_RUTs(self):
+        def two_dependencies():
+            for d_yx in self.undirectedDependencies:
+                for d_zy in self.undirectedDependencies:
+                    if d_zy.relVar2.attrName == d_yx.relVar1.attrName:
+                        yield d_yx, d_zy
+
+        for d_yx, d_zy in two_dependencies():
+            Vx = d_yx.relVar2  # this is a canonical relational variable
+            Qy, Rz = d_yx.relVar1, d_zy.relVar1
+            for QR in AbstractGroundGraph.extendPath(self._schema, Qy.path, Rz.path):
+                QRz = RelationalVariable(QR, Rz.attrName)
+                if QRz != Vx and QRz not in self._causes[Vx]:
+                    yield QRz, Qy, Vx
+
+    def orientDependencies(self, background_knowledge=None):
+        '''
+        Orient undirected dependencies.
+        :param background_knowledge:
+        :return:
+        '''
+        assert self.undirectedDependencies is not None
+
+        # initialize attribute class level non-colliders
+        non_colliders = set()
+        # initialize class dependency graph
+        cdg = PDAG((c.attrName, e.attrName) for e, cs in self._causes.items() for c in cs)
+        ancestrals = Ancestral(cdg.vertices())
+        if background_knowledge is not None:
+            cdg.orients(background_knowledge)
+            RCDLight._apply_rules(cdg, non_colliders, ancestrals)
+
+        # enumerate all representative unshielded triples
+        ruts = list(set(self._enumerate_RUTs()))
+        random.shuffle(ruts)
+        ruts.sort(key=lambda ut: frozenset({ut[0], ut[2]}) in self._sepsets,
+                  reverse=True)  # take advantage of cached CIs
+        for rv1, rv2, crv3 in ruts:
+            z, y, x = rv1.attrName, rv2.attrName, crv3.attrName
+
+            # Check skippable tests
+            if cdg.is_oriented(z, y) and cdg.is_oriented(x, y):  # already oriented
+                continue
+            if (y, frozenset({x, z})) in non_colliders:  # already non-collider
+                continue
+            if z in cdg.de(x):  # delegate to its complement UT.
+                continue
+            if cdg.is_oriented_as(y, x) or cdg.is_oriented_as(y, z):  # an inactive non-collider
+                continue
+
+            sepset = self._find_sepset(rv1, crv3, 'Phase II')
+            if sepset is not None:
+                if rv2 not in sepset:  # collider
+                    cdg.orients(((z, y), (x, y)))
+                elif x == z:  # non-collider, RBO
+                    cdg.orient(y, x)
                 else:
-                    logger.debug("found result in CI cache")
-                if self.ciTestCache[ciTestKey]:
-                    return set(candidateSepSet), testedAtCurrentSize
-        return None, testedAtCurrentSize
+                    non_colliders.add((y, frozenset({x, z})))
+            else:
+                cdg.orient(x, z) if cdg.is_adj(x, z) else ancestrals.add(x, z)
 
-    def removeDependency(self, dependency: RelationalDependency):
-        depReverse = dependency.reverse()
-        self.parents[dependency.relVar2].remove(dependency.relVar1)
-        self.parents[depReverse.relVar2].remove(depReverse.relVar1)
+            RCDLight._apply_rules(cdg, non_colliders, ancestrals)
 
-    def orientDependencies(self, background_knowledge=None, truth=None):
-        logger.info('Phase II: orienting dependencies')
-        if not hasattr(self, 'undirectedDependencies') or self.undirectedDependencies is None:
-            raise Exception("No undirected dependencies found. Try running Phase I first.")
-        if not hasattr(self, 'sepsets') or self.sepsets is None:
-            raise Exception("No sepsets found. Try running Phase I first.")
+        #
+        self._reflect_orientations(cdg)
+        self._update_oriented_dependencies()
+        return set(self.orientedDependencies)
 
-        if self.depth is None:
-            self.depth = max(len(v) for v in self.parents.values())
+    def _reflect_orientations(self, cdg):
+        for effect, causes in self._causes.items():
+            for cause in list(causes):
+                if cdg.is_oriented_as(effect.attrName, cause.attrName):
+                    causes.remove(cause)
 
-        self.applyOrientationRules(background_knowledge, truth=truth)
-
+    def _update_oriented_dependencies(self):
         self.orientedDependencies = set()
-        for effect, causes in self.parents.items():
+        for effect, causes in self._causes.items():
             for cause in causes:
                 dep = RelationalDependency(cause, effect)
                 rev = dep.reverse()
-                if rev.relVar1 not in self.parents[rev.relVar2]:
+                if rev.relVar1 not in self._causes[rev.relVar2]:
                     self.orientedDependencies.add(dep)
 
-        logger.info("Separating sets: %s", self.sepsets)
-        logger.info("Oriented dependencies: %s", self.orientedDependencies)
-        logger.info(self.ciRecord)
-        logger.info(self.edgeOrientationRuleFrequency)
+    @staticmethod
+    def _apply_rules(pdag, non_colliders, ancestral):
+        # colliders are not all oriented.
+        # non-colliders are imperfect.
+        # ancestral relationships are imperfect.
+        changed = True
+        while changed:
+            changed = False
 
-    def applyOrientationRules(self, background_knowledge, truth=None):
-        self.applyColliderDetectionAndRBO(truth=truth)
-        self.applySepsetFreeOrientationRules(background_knowledge)
+            changed |= MeekRules.rule_2(pdag)
+            for y, (x, z) in non_colliders:
+                changed |= MeekRules.rule_1(pdag, x, y, z)
+                changed |= MeekRules.rule_3(pdag, x, y, z)
+                changed |= MeekRules.rule_4(pdag, x, y, z)
 
-    def applySepsetFreeOrientationRules(self, background_knowledge):
-        newOrientationsFound = True
-        # PDAG where an undirected edge is represented as two directed edges between two attribute classes
-        CDG = networkx.DiGraph()
-        for effect, causes in self.parents.items():
-            for cause in causes:
-                CDG.add_edge(cause.attrName, effect.attrName)
+                if (x, z) in ancestral:
+                    changed |= pdag.orient(y, z)
+                elif (z, x) in ancestral:
+                    changed |= pdag.orient(y, x)
 
-        is_oriented_as = lambda x, y: CDG.has_edge(x, y) and not CDG.has_edge(y, x)
-        is_unoriented = lambda x, y: CDG.has_edge(x, y) and CDG.has_edge(y, x)
-        orient = lambda x, y: CDG.remove_edge(y, x) if CDG.has_edge(y, x) else None
-        succ = lambda x: set(CDG.successors(x))
-        pred = lambda x: set(CDG.predecessors(x))
+    def _find_sepset_with_size(self, rv1, rv2, size, record='unknown'):
+        assert len(rv2.path) == 1
+        is_ci = self._ci_tester.isConditionallyIndependent
 
-        if background_knowledge is not None:
-            for x, y in background_knowledge:
-                assert CDG.has_edge(x, y)
-                orient(x, y)
+        neighbors = set(self._causes[rv2]) - {rv1}
+        if size > len(neighbors):
+            return None, False
 
-        while newOrientationsFound:
-            newOrientationsFound = False
-            for y, (x, z) in list(self.non_colliders):
-                if not is_unoriented(y, x) and not is_unoriented(y, z):
-                    self.non_colliders.remove((y, frozenset({x, z})))
-                    continue
+        for condition in itertools.combinations(neighbors, size):
+            ci_key = (rv1, rv2, tuple(sorted(list(condition))))
 
-                # R1: KNC
-                if is_oriented_as(x, y) and is_unoriented(y, z):
-                    orient(y, z)
-                    self.recordEdgeOrientationUsage('KNC')
-                    newOrientationsFound = True
-                    self.non_colliders.remove((y, frozenset({x, z})))
-                    break
-                elif is_oriented_as(z, y) and is_unoriented(y, x):
-                    orient(y, x)
-                    self.recordEdgeOrientationUsage('KNC')
-                    newOrientationsFound = True
-                    self.non_colliders.remove((y, frozenset({x, z})))
-                    break
+            if ci_key not in self._ci_cache:
+                self.ciRecord[record] += 1
+                self.ciRecord['total'] += 1
+                self._ci_cache[ci_key] = is_ci(rv1, rv2, condition)
 
-                # R3: MR3, x --> w <-- z
-                for w in succ(x) & succ(y) & succ(z):
+            if self._ci_cache[ci_key]:
+                self._sepsets[frozenset({rv1, rv2})] = set(condition)
+                return set(condition), True
 
-                    if is_oriented_as(x, w) and is_oriented_as(z, w) and is_unoriented(y, w):
-                        orient(y, w)
-                        self.recordEdgeOrientationUsage('MR3')
-                        newOrientationsFound = True
+        return None, True
 
-                # R4: MR4, # r --> b --> l
-                for l, t, r in ((x, y, z), (z, y, x)):
-                    if is_unoriented(t, l):
-                        for b in succ(r):
-                            if is_oriented_as(r, b) and is_oriented_as(b, l):
-                                orient(t, l)
-                                self.recordEdgeOrientationUsage('MR4')
-                                newOrientationsFound = True
-            # R2:
-            for v1 in CDG.nodes_iter():
-                for v2 in succ(v1) - pred(v1):
-                    for v3 in succ(v2) - pred(v2):
-                        assert v1 != v3
-                        if is_unoriented(v1, v3):
-                            orient(v1, v3)
-                            self.recordEdgeOrientationUsage('CA')
-                            newOrientationsFound = True
+    def _find_sepset(self, rv1, rv2, record='unknown'):
+        assert len(rv2.path) == 1
+        key = frozenset({rv1, rv2})
+        if key in self._sepsets:
+            return self._sepsets[key]
 
-        for effect, causes in self.parents.items():
-            for cause in list(causes):
-                if is_oriented_as(effect.attrName, cause.attrName):
-                    causes.remove(cause)  # remove if oriented in an opposite direction
-
-    def _findUnshieldedTriples(self):
-        done = set()
-        data = sorted(self.undirectedDependencies, key=lambda d: d.relVar2.attrName)
-        depsPerAttrName = collections.defaultdict(set, {k: set(g) for k, g in
-                                                        itertools.groupby(data, key=lambda d: d.relVar2.attrName)})
-
-        extender = AbstractGroundGraph.extendPath
-        for d_yx in self.undirectedDependencies:
-            Qy = d_yx.relVar1
-            for d_zy in depsPerAttrName[Qy.attrName]:
-                Rz = d_zy.relVar1
-                for QR in sorted(extender(self.schema, d_yx.relVar1.path, d_zy.relVar1.path),
-                                 key=lambda p: len(p)):
-                    QRz = RelationalVariable(QR, Rz.attrName)
-                    if QRz != d_yx.relVar2 and QRz not in self.parents[d_yx.relVar2]:
-                        if (QRz, Qy, d_yx.relVar2) not in done:
-                            yield QRz, Qy, d_yx.relVar2, d_zy, d_yx
-                            done.add((QRz, Qy, d_yx.relVar2))
-
-    def applyColliderDetectionAndRBO(self, truth=None):
-        true_order = {(d.relVar1.attrName, d.relVar2.attrName) for d in truth} if truth is not None else None
-
-        newOrientationsFound = False
-        oriented_pairs = set()
-        orientations_cd = set()
-        orientations_rbo = set()
-
-        for rv1, rv2, rv3, d12, d23 in sorted(self._findUnshieldedTriples(),
-                                              key=lambda x: (
-                                                          len(x[0].path) > self.hopThreshold + 1, len(self.parents[x[2]]))):
-            z, y, x = rv1.attrName, rv2.attrName, rv3.attrName
-            if {frozenset({z, y}), frozenset({x, y})} <= oriented_pairs:  # if both are oriented
-                continue
-            sepset = self.findRecordAndReturnSepset(rv1, rv3)
+        for d in itertools.count():
+            sepset, tested = self._find_sepset_with_size(rv1, rv2, d, record)
             if sepset is not None:
-                # TODO
-                if rv2 not in sepset:  # collider
-                    oriented_pairs |= {frozenset({z, y}), frozenset({x, y})}
-                    orientations_cd |= {(z, y), (x, y)}
-                    self.recordEdgeOrientationUsage('CD')
-                    newOrientationsFound = True
-                elif x == z:  # non-collider, RBO
-                    oriented_pairs.add(frozenset({y, x}))
-                    orientations_rbo.add((y, x))
-                    self.recordEdgeOrientationUsage('RBO')
-                    newOrientationsFound = True
-                else:
-                    self.non_colliders.add((y, frozenset({x, z})))
-                if true_order is not None:
-                    if orientations_cd <= true_order and orientations_rbo <= true_order:
-                        pass
-                    else:
-                        print('wrong triple: {} -- {} -- {} based on {} and {}'.format(rv1, rv2, rv3, d12, d23))
-
-        # self contradictory?
-        oris = orientations_cd | orientations_rbo
-        if oris & {(y, x) for x, y in oris}:
-            print('conflicted: {} -- {}'.format(x, y))
-
-        for effect, causes in self.parents.items():
-            for cause in list(causes):
-                if (effect.attrName, cause.attrName) in oris:
-                    causes.remove(cause)  # remove if oriented in an opposite direction
-
-        return newOrientationsFound
-
-    def findRecordAndReturnSepset(self, relVar1, relVar2):
-        if (relVar1, relVar2) in self.sepsets:
-            return self.sepsets[(relVar1, relVar2)]
-        else:
-            sepset = None
-            logger.debug("findRecordAndReturnSepset for %s and %s", relVar1, relVar2)
-            for conditioningSetSize in range(self.depth + 1):
-                sepset, testedAtCurrentSize = self.findSepset(relVar1, relVar2, conditioningSetSize,
-                                                              phaseI=False, phaseForRecording='Phase II')
-                if sepset is not None:
-                    logger.debug("recording sepset %s", sepset)
-                    self.sepsets[(relVar1, relVar2)] = sepset
-                    self.sepsets[(relVar2, relVar1)] = sepset
-                    break
-                if not testedAtCurrentSize:  # exit early, no other candidate sepsets to check
-                    break
-            return sepset
-
-    def recordEdgeOrientationUsage(self, edgeOrientationName):
-        self.edgeOrientationRuleFrequency[edgeOrientationName] += 1
-
-    def resetEdgeOrientationUsage(self):
-        self.edgeOrientationRuleFrequency = {'CD': 0, 'KNC': 0, 'CA': 0, 'MR3': 0, 'RBO': 0, 'MR4': 0}
-
-    def report(self):
-        return self.ciRecord, self.edgeOrientationRuleFrequency
+                self._sepsets[key] = sepset
+                return sepset
+            if not tested:
+                return None
 
 
-def runRCDLight(schema, citest, hopThreshold, depth=None):
-    rcd = RCDLight(schema, citest, hopThreshold, depth)
-    rcd.identifyUndirectedDependencies()
-    rcd.orientDependencies()
-    return rcd.orientedDependencies
+class Ancestral:
+    '''
+    Record ancestral relationships (or equivalently, partially ordered)
+    '''
+
+    def __init__(self, vs):
+        self.vs = set(vs)
+        self.ans = collections.defaultdict(set)
+        self.des = collections.defaultdict(set)
+
+    def related(self, x, y):
+        '''
+        check either two vertices are partially ordered
+        :param x:
+        :param y:
+        :return:
+        '''
+        assert x != y
+        return y in self.ans[x] or y in self.des[x]
+
+    def adds(self, ancs):
+        for anc, x in ancs:
+            self.add(anc, x)
+
+    def add(self, ancestor, x):
+        assert ancestor != x
+        assert x not in self.ans[ancestor]
+        if ancestor in self.ans[x]:
+            return
+
+        dedes = self.des[x]
+        anans = self.ans[ancestor]
+
+        for dede in dedes:
+            self.ans[dede] |= anans
+        self.ans[x] |= anans
+
+        for anan in anans:
+            self.des[anan] |= dedes
+        self.des[ancestor] |= dedes
+
+    def __contains__(self, item):
+        x, y = item  # x-...->y
+        return x in self.ans[y]
+
+
+class PDAG:
+    '''
+    A Partially Directed Acyclic Graph.
+    '''
+
+    def __init__(self, edges=None):
+        self.E = set()
+        self._Pa = collections.defaultdict(set)
+        self._Ch = collections.defaultdict(set)
+        if edges is not None:
+            self.add_edges(edges)
+
+    def vertices(self):
+        return set(self._Pa.keys()) | set(self._Ch.keys())
+
+    def __contains__(self, item):
+        return item in self.E
+
+    # Ancestors
+    def an(self, x, at=None):
+        if at is None:
+            at = set()
+
+        for p in self.pa(x):
+            if p not in at:
+                at.add(p)
+                self.an(p, at)
+
+        return at
+
+    # Descendants
+    def de(self, x, at=None):
+        if at is None:
+            at = set()
+
+        for p in self.ch(x):
+            if p not in at:
+                at.add(p)
+                self.de(p, at)
+
+        return at
+
+    # get all oriented edges
+    def oriented(self):
+        ors = set()
+        for x, y in self.E:
+            if (y, x) not in self.E:
+                ors.add((x, y))
+        return ors
+
+    def unoriented(self):
+        uors = set()
+        for x, y in self.E:
+            if (y, x) in self.E:
+                uors.add(frozenset({x, y}))
+        return uors
+
+    # remove a vertex
+    def remove_vertex(self, v):
+        for x, y in list(self.E):
+            if x == v or y == v:
+                self.E.remove((x, y))
+
+        self._Pa.pop(v, None)
+        self._Ch.pop(v, None)
+
+        for k, values in self._Pa.items():
+            if v in values:
+                values.remove(v)
+        for k, values in self._Ch.items():
+            if v in values:
+                values.remove(v)
+
+    def copy(self):
+        new_copy = PDAG()
+        new_copy.E = set(self.E)
+        new_copy._Pa = collections.defaultdict(set)
+        new_copy._Ch = collections.defaultdict(set)
+        for k, vs in self._Pa.items():
+            new_copy._Pa[k] = set(vs)
+        for k, vs in self._Ch.items():
+            new_copy._Ch[k] = set(vs)
+
+        return new_copy
+
+    # Adjacent
+    def is_adj(self, x, y):
+        return (x, y) in self.E or (y, x) in self.E
+
+    def add_edges(self, xys):
+        for x, y in xys:
+            self.add_edge(x, y)
+
+    def add_edge(self, x, y):
+        '''
+        if y-->x exists, adding x-->y makes x -- y.
+        :param x:
+        :param y:
+        :return:
+        '''
+        assert x != y
+        self.E.add((x, y))
+        self._Pa[y].add(x)
+        self._Ch[x].add(y)
+
+    def add_undirected_edge(self, x, y):
+        # will override any existing directed edge
+        assert x != y
+        self.add_edge(x, y)
+        self.add_edge(y, x)
+
+    def orients(self, xys):
+        return any([self.orient(x, y) for x, y in xys])
+
+    def orient(self, x, y):
+        if (x, y) in self.E:
+            if (y, x) in self.E:
+                self.E.remove((y, x))
+                self._Pa[x].remove(y)
+                self._Ch[y].remove(x)
+                return True
+        return False
+
+    def is_oriented_as(self, x, y):
+        return (x, y) in self.E and (y, x) not in self.E
+
+    def is_unoriented(self, x, y):
+        return (x, y) in self.E and (y, x) in self.E
+
+    def is_oriented(self, x, y):
+        return ((x, y) in self.E) ^ ((y, x) in self.E)
+
+    # get neighbors
+    def ne(self, x):
+        return self._Pa[x] & self._Ch[x]
+
+    # get adjacent vertices
+    def adj(self, x):
+        return self._Pa[x] | self._Ch[x]
+
+    # get parents
+    def pa(self, x):
+        return self._Pa[x] - self._Ch[x]
+
+    # get children
+    def ch(self, x):
+        return self._Ch[x] - self._Pa[x]
+
+
+class MeekRules:
+    @staticmethod
+    # x--y--z must be a (shielded or unshielded) non-colider
+    def rule_3(pdag: PDAG, x, y, z):
+        # MR3 x-->w<--z, w--y
+        changed = False
+        for w in pdag.ch(x) & pdag.ch(z) & pdag.ne(y):
+            changed |= pdag.orient(y, w)
+        return changed
+
+    @staticmethod
+    def rule_2(pdag: PDAG):
+        changed = False
+        for x, y in list(pdag.E):
+            if pdag.is_unoriented(x, y):  # will check y,x, too
+                if pdag.ch(x) & pdag.pa(y):  # x-->w-->y
+                    changed |= pdag.orient(x, y)
+        return changed
+
+    @staticmethod
+    # x--y--z must be a (shielded or unshielded) non-colider
+    def rule_4(pdag: PDAG, x, y, z):
+        # MR4 z-->w-->x # y-->x
+        if pdag.ch(z) & pdag.pa(x):
+            return pdag.orient(y, x)
+        elif pdag.ch(x) & pdag.pa(z):  # z<--w<--x, z<--y
+            return pdag.orient(y, z)
+        return False
+
+    @staticmethod
+    # x--y--z must be a (shielded or unshielded) non-colider
+    def rule_1(pdag: PDAG, x, y, z):
+        if pdag.is_oriented_as(x, y):
+            return pdag.orient(y, z)
+        elif pdag.is_oriented_as(z, y):
+            return pdag.orient(y, x)
+        return False
+
+
+def runRCDLight(schema, citest, hopThreshold):
+    rcdl = RCDLight(schema, citest, hopThreshold)
+    rcdl.identifyUndirectedDependencies()
+    rcdl.orientDependencies()
+    return rcdl.orientedDependencies
+
+
+# This example is given in the AAAI paper
+def incompleteness_example():
+    schema = Schema()
+    schema.addEntity("E1")
+    schema.addEntity("E2")
+    schema.addEntity("E3")
+    schema.addEntity("E4")
+    schema.addRelationship("R1", ("E1", Schema.ONE), ("E2", Schema.ONE))
+    schema.addRelationship("R2", ("E2", Schema.ONE), ("E3", Schema.ONE))
+    schema.addRelationship("R3", ("E2", Schema.ONE), ("E3", Schema.ONE))
+    schema.addRelationship("R4", ("E2", Schema.ONE), ("E4", Schema.ONE))
+    schema.addAttribute("R1", "X")
+    schema.addAttribute("R2", "Y")
+    schema.addAttribute("E2", "Z")
+
+    d1 = RelationalDependency(RelationalVariable(["R2", "E2", "R1"], "X"), RelationalVariable(["R2"], "Y"))
+    d2 = RelationalDependency(RelationalVariable(["R2", "E3", "R3", "E2"], "Z"), RelationalVariable(["R2"], "Y"))
+    d3 = RelationalDependency(RelationalVariable(["R1", "E2", "R2", "E3", "R3", "E2"], "Z"),
+                              RelationalVariable(["R1"], "X"))
+    model = Model(schema, [d1, d2, d3])
+    return schema, model

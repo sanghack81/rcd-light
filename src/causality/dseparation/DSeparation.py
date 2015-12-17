@@ -2,13 +2,12 @@ import collections
 import random
 
 import networkx as nx
-
 from causality.model import RelationalValidity
 from causality.dseparation.AbstractGroundGraph import AbstractGroundGraph
 from causality.model import ParserUtil
 
-
 class DSeparation(object):
+
     def __init__(self, model):
         self.model = model
         self.perspectiveHopThresholdToAgg = {}
@@ -46,7 +45,6 @@ class DSeparation(object):
             agg = self.perspectiveHopThresholdToAgg[(perspective, hopThreshold)]
             ug = self.ugs[(perspective, hopThreshold)]
 
-
         # expand relVars1, relVars2, condRelVars with all intersection variables they subsume
         relVars1 = {relVar for relVar1 in relVars1 for relVar in agg.getSubsumedVariables(relVar1)}
         relVars2 = {relVar for relVar2 in relVars2 for relVar in agg.getSubsumedVariables(relVar2)}
@@ -61,10 +59,7 @@ class DSeparation(object):
         if not relVars1 or not relVars2:
             return True
 
-        # if random.random() < 0.5:
         return bfsReachability(relVars1, relVars2, condRelVars, agg, ug)
-        # else:
-        #     return bfsReachability_original(relVars1, relVars2, condRelVars, agg, ug)
 
 
 def agg2ug(agg):
@@ -79,69 +74,6 @@ def agg2ug(agg):
     undirectedAGG.add_node('source', reach=True)
     return undirectedAGG
 
-
-def bfsReachability_original(relVars1, relVars2, condRelVars, agg, unused=None):
-    # Adapted from Algorithm 2 in "Identifying Independence in Bayesian Networks", Geiger, Verma, & Pearl 1990
-    # Given a set of variables (relVars1, or X) and conditioning set (condRelVars, or Z),
-    # identifies _all_ variables d-separated from X given Z using illegal link pairs and reachability
-    # Exits early if finds a path that reaches a member of relVars2 (Y).
-
-    # (i) Construct table that says whether each node is determined by the conditioning variables
-    determined = condRelVars
-
-    # (i) Construct table that says whether each node has a descendant that is a conditioning variables
-    descendant = {}
-    for condRelVar in condRelVars:
-        descendant[condRelVar] = True
-        for ancestor in agg.getAncestors(condRelVar):
-            descendant[ancestor] = True
-
-    # (ii) Construct directed graph where all edges have their reverse included
-    undirectedAGG = nx.DiGraph()
-    undirectedAGG.add_nodes_from(agg.nodes())
-    for (aggNode1, aggNode2) in agg.edges_iter():
-        undirectedAGG.add_edge(aggNode1, aggNode2)
-        undirectedAGG.add_edge(aggNode2, aggNode1)
-
-    # (i) Add node s and add edge from s to all nodes in sourceNodes (X)
-    # Label those links with a 1, those nodes as reachable, and all other nodes as not reached
-    undirectedAGG.add_node('source', reach=True)
-    for node in relVars1:
-        undirectedAGG.add_edge('source', node)
-        undirectedAGG['source'][node]['label'] = 1
-
-    # (ii) iteration:=1
-    iteration = 1
-
-    # (iii) Find all unlabeled links aggNode2 -> aggNode3 adjacent to at least one linke aggNode1 -> aggNode2
-    # labeled iteration, such that (aggNode1 -> aggNode2, aggNode2 -> aggNode3) is legal. If no such link exists, stop.
-    keepGoing = True
-    while keepGoing:
-        keepGoing = False
-        for (aggNode1, aggNode2) in undirectedAGG.edges_iter():
-            if 'label' in undirectedAGG[aggNode1][aggNode2] and undirectedAGG[aggNode1][aggNode2]['label'] == iteration:
-                # for each _unlabeled_ neighbor of aggNode2 (except aggNode1)
-                for aggNode3 in [neighbor for neighbor in undirectedAGG[aggNode2] if 'label' not in
-                        undirectedAGG[aggNode2][neighbor] and not aggNode1 == neighbor]:
-                    legal = False
-                    # Legal if either aggNode2 is head-to-head node with descendant[aggNode2] = True
-                    # OR
-                    # aggNode2 is not a head-to-head node and determined[aggNode2] = False
-                    if aggNode1 in agg and aggNode2 in agg[aggNode1] and aggNode3 in agg and aggNode2 in agg[aggNode3]:
-                        if aggNode2 in descendant:
-                            legal = True
-                    else:
-                        if not aggNode2 in determined:
-                            legal = True
-
-                    if legal:
-                        if aggNode3 in relVars2:
-                            return False
-                        undirectedAGG[aggNode2][aggNode3]['label'] = iteration + 1
-                        keepGoing = True
-        iteration += 1
-
-    return True
 
 
 # shlee fix for performance (up to 5x)

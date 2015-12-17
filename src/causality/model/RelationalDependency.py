@@ -24,6 +24,7 @@ class RelationalVariable(object):
     def __eq__(self, other):
         return isinstance(other, RelationalVariable) and self.__key() == other.__key()
 
+
     def __hash__(self):
         if self.__h == 0:
             self.__h = hash(self.__key())
@@ -78,6 +79,7 @@ class RelationalDependency(object):
 
     def __eq__(self, other):
         return isinstance(other, RelationalDependency) and self.__key() == other.__key()
+
 
     def __hash__(self):
         return hash(self.__key())

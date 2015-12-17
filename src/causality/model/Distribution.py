@@ -125,7 +125,7 @@ class DiscreteMarginalDistribution(MarginalDistribution):
     """
     A discrete marginal distribution.  Will normalize the input probabilities to sum to 1.0.
     """
-    # Sanghack controlling randomness is not easy due to order of ONE and MANY in valueToProbability
+
     def __init__(self, valueToProbability, randomNumGenerator=random.random):
         self.valueToProbability = valueToProbability
         # make sure there are no negative probabilities

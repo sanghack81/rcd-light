@@ -46,7 +46,7 @@ class RCD(object):
         # Create fully connected undirected AGG
         potentialDeps = RelationalSpace.getRelationalDependencies(self.schema, self.hopThreshold, includeExistence=False)
         potentialDeps = self.potentialDependencySorter(potentialDeps)
-        self.constructAggsFromDependencies(potentialDeps,times)
+        self.constructAggsFromDependencies(potentialDeps, times)
 
         self.full_num_agg_nodes = sum(len(agg.nodes()) for agg in self.perspectiveToAgg.values())
         self.full_num_agg_edges = sum(len(agg.edges()) for agg in self.perspectiveToAgg.values())
@@ -165,6 +165,8 @@ class RCD(object):
             raise Exception("No undirected dependencies found. Try running Phase I first.")
         if not hasattr(self, 'sepsets') or self.sepsets is None:
             raise Exception("No sepsets found. Try running Phase I first.")
+
+        # self.constructAggsFromDependencies(self.undirectedDependencies)
 
         if self.depth is None: # if it wasn't set in Phase I (e.g., manually set undirected dependencies)
             self.depth = max([len(agg.nodes()) - 2 for agg in self.perspectiveToAgg.values()])

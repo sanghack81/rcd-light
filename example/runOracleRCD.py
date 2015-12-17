@@ -20,7 +20,7 @@ schema = SchemaGenerator.generateSchema(numEntities, numRelationships, allowCycl
 logger.info(schema)
 model = ModelGenerator.generateModel(schema, hopThreshold, numDependencies, maxNumParents=maxNumParents)
 logger.info('Model: %s', model.dependencies)
-oracle = Oracle(model, 2 * hopThreshold)
+oracle = Oracle(model, 2*hopThreshold)
 
 # Run RCD algorithm and collect statistics on learned model
 rcd = RCD(schema, oracle, hopThreshold, depth=rcdDepth)
