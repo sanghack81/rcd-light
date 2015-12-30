@@ -1,3 +1,18 @@
+# Copyright 2015 Sanghack Lee
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
 import collections
 import itertools
 import numbers
@@ -10,11 +25,11 @@ from causality.model.Schema import Schema
 from causality.modelspace import RelationalSpace
 
 
-# (Improved) RCD-Light algorithm
-# "On Learning Causal Models from Relational Data (In Proc. of AAAI-2016)"
+# An Improved RCD-Light algorithm
+# based on "On Learning Causal Models from Relational Data (In Proc. of AAAI-2016)"
 # Sanghack Lee & Vasant Honavar
 #
-# This algorithm is compatible with RCD from
+# This algorithm is compatible with Relational Causal Discovery (RCD) from
 # "A Sound and Complete Algorithm for Learning Causal Models from Relational Data" (In Proc. of UAI-2013)
 #
 class RCDLight(object):
@@ -33,6 +48,9 @@ class RCDLight(object):
         self.ciRecord = collections.defaultdict(lambda: 0)
 
     def identifyUndirectedDependencies(self):
+        '''
+        This is for the Phase I of RCD-Light.
+        '''
         potential_deps = RelationalSpace.getRelationalDependencies(self._schema, self._hop_threshold)
 
         keyfunc = lambda dep: dep.relVar2
@@ -62,6 +80,9 @@ class RCDLight(object):
         return set(self.undirectedDependencies)
 
     def _enumerate_RUTs(self):
+        '''
+        This enumerates all representative unshielded triples.
+        '''
         def two_dependencies():
             for d_yx in self.undirectedDependencies:
                 for d_zy in self.undirectedDependencies:
@@ -78,9 +99,10 @@ class RCDLight(object):
 
     def orientDependencies(self, background_knowledge=None):
         '''
-        Orient undirected dependencies.
-        :param background_knowledge:
-        :return:
+        This is Phase II of RCD-Light.
+         This orients dependencies based on both
+         (i) CI-based orientation and;
+         (ii) constraints-based orientation.
         '''
         assert self.undirectedDependencies is not None
 
@@ -96,8 +118,10 @@ class RCDLight(object):
         # enumerate all representative unshielded triples
         ruts = list(set(self._enumerate_RUTs()))
         random.shuffle(ruts)
+        # take advantage of cached CIs
         ruts.sort(key=lambda ut: frozenset({ut[0], ut[2]}) in self._sepsets,
-                  reverse=True)  # take advantage of cached CIs
+                  reverse=True)
+
         for rv1, rv2, crv3 in ruts:
             z, y, x = rv1.attrName, rv2.attrName, crv3.attrName
 
@@ -120,6 +144,10 @@ class RCDLight(object):
                 else:
                     non_colliders.add((y, frozenset({x, z})))
             else:
+                # The original version of RCD-Light orients (or add) an edge as x-->z, and
+                # takes advantage of Rule 2.
+                # The improved version explicitly represents ancestral relationships, and can
+                # orient more edges.
                 cdg.orient(x, z) if cdg.is_adj(x, z) else ancestrals.add(x, z)
 
             RCDLight._apply_rules(cdg, non_colliders, ancestrals)
@@ -146,6 +174,10 @@ class RCDLight(object):
 
     @staticmethod
     def _apply_rules(pdag, non_colliders, ancestral):
+        '''
+        Orients unoriented edges in a PDAG given an explicit, but may not complete, list of non-colliders and
+          an additional ancestral relationship among vertices.
+        '''
         # colliders are not all oriented.
         # non-colliders are imperfect.
         # ancestral relationships are imperfect.
