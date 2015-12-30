@@ -83,6 +83,7 @@ class RCDLight(object):
         '''
         This enumerates all representative unshielded triples.
         '''
+
         def two_dependencies():
             for d_yx in self.undirectedDependencies:
                 for d_zy in self.undirectedDependencies:
@@ -480,11 +481,9 @@ def incompleteness_example():
     schema.addEntity("E1")
     schema.addEntity("E2")
     schema.addEntity("E3")
-    schema.addEntity("E4")
     schema.addRelationship("R1", ("E1", Schema.ONE), ("E2", Schema.ONE))
     schema.addRelationship("R2", ("E2", Schema.ONE), ("E3", Schema.ONE))
     schema.addRelationship("R3", ("E2", Schema.ONE), ("E3", Schema.ONE))
-    schema.addRelationship("R4", ("E2", Schema.ONE), ("E4", Schema.ONE))
     schema.addAttribute("R1", "X")
     schema.addAttribute("R2", "Y")
     schema.addAttribute("E2", "Z")
