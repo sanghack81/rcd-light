@@ -5,89 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="48783d19-824a-49a6-95ce-506c5e294d08" name="Default" comment="Release candidate">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/doc/RCD_Guide.pdf" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/example/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/example/rcd-test-data.sql" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/example/runDatabaseRCD.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/example/runOracleRCD.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/datastore/DataStore.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/datastore/InMemoryDataStore.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/datastore/MySqlDataStore.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/datastore/PostgreSqlDataStore.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/datastore/SqlDataStore.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/datastore/Sqlite3DataStore.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/datastore/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/dseparation/AbstractGroundGraph.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/learning/EdgeOrientation.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/learning/ModelEvaluation.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/learning/PC.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/model/Aggregator.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/model/Distribution.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/model/Model.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/model/ParserUtil.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/model/RelationalValidity.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/model/Schema.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/modelspace/ModelGenerator.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/modelspace/RelationalSpace.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/modelspace/SchemaGenerator.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/modelspace/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/TestUtil.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/propositional-data-2.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/propositional-data.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/relational-data-a.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/relational-data-ab.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/relational-data-b.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/relational-data-bc.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/relational-data-c.csv" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/testLinearCITest.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/citest/testOracle.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/datastore/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/datastore/testDataStoreBasicOperations.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/datastore/testDataStoreRelationalPath.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/dseparation/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/dseparation/testAbstractGroundGraph.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/dseparation/testDSeparation.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/learning/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/learning/testEdgeOrientation.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/learning/testModelEvaluation.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/learning/testPC.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/learning/testRCD.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/logging.ini" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/testDistribution.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/testImportExport.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/testModel.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/testParserUtil.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/testRelationalDependency.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/testRelationalValidity.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/model/testSchema.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/modelspace/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/modelspace/testModelGenerator.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/modelspace/testRelationalDependencySpace.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/modelspace/testRelationalPathSpace.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/modelspace/testRelationalVariableSpace.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/modelspace/testSchemaGenerator.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/tcmessages.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/tcunittest.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/testDataStoreSuite.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/causality/test/testPlaceholder.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/shlee/RCDLightOld.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/shlee/RCDLightPrime.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/shlee/run_RCDL.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/shlee/test/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/unused/RCDLightNewDeprecated.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/unused/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/unused/runOracleRCDNewRedo.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/src/unused/snc_rules_old.py" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/rcd-working.iml" afterPath="$PROJECT_DIR$/.idea/rcd-working.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/unused/RCDLightOld.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/unused/RCDLightPrime.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/unused/run_RCDL.py" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../rcd/src/causality/citest/CITest.py" afterPath="$PROJECT_DIR$/../rcd/src/causality/citest/CITest.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../rcd/src/causality/dseparation/DSeparation.py" afterPath="$PROJECT_DIR$/../rcd/src/causality/dseparation/DSeparation.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../rcd/src/causality/learning/RCD.py" afterPath="$PROJECT_DIR$/../rcd/src/causality/learning/RCD.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../rcd/src/causality/model/RelationalDependency.py" afterPath="$PROJECT_DIR$/../rcd/src/causality/model/RelationalDependency.py" />
     </list>
     <ignored path="rcd-original.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -205,7 +126,6 @@
     </navigator>
     <panes>
       <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -247,9 +167,32 @@
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="shlee" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rcd-original" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rcd-working" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="causality" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -528,7 +471,13 @@
       <option name="project" value="LOCAL" />
       <updated>1450860110673</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Release candidate">
+      <created>1451511749168</created>
+      <option name="number" value="00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1451511749168</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView">
@@ -544,27 +493,27 @@
     <frame x="0" y="23" width="1440" height="873" extended-state="6" />
     <editor active="false" />
     <layout>
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29444444" sideWeight="0.6380597" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32950193" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.42770627" sideWeight="0.14495632" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5634328" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31839624" sideWeight="0.4931677" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30099502" sideWeight="0.8550437" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29444444" sideWeight="0.6441281" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20895523" sideWeight="0.49649122" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24960254" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29444444" sideWeight="0.3558719" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4912409" sideWeight="0.49841145" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29444444" sideWeight="0.3619403" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.5634328" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.30099502" sideWeight="0.8550437" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.18677792" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.20895523" sideWeight="0.49649122" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4912409" sideWeight="0.49841145" order="3" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32950193" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -615,7 +564,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="15" column="1" selection-start-line="15" selection-start-column="1" selection-end-line="15" selection-end-column="1" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -623,7 +571,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -631,7 +578,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="23" column="18" selection-start-line="23" selection-start-column="18" selection-end-line="23" selection-end-column="18" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -639,7 +585,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="54" column="0" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -654,7 +599,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -746,7 +690,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.023195876">
           <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -754,9 +697,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="4.6910114">
           <caret line="151" column="0" selection-start-line="151" selection-start-column="0" selection-end-line="151" selection-end-column="0" />
-          <folding>
-            <element signature="e#1242#1260#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -764,7 +704,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="3.5730338">
           <caret line="106" column="0" selection-start-line="106" selection-start-column="0" selection-end-line="106" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -772,7 +711,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -780,7 +718,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -788,9 +725,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5280899">
           <caret line="113" column="0" selection-start-line="113" selection-start-column="0" selection-end-line="113" selection-end-column="0" />
-          <folding>
-            <element signature="e#1243#1261#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -798,7 +732,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5730337">
           <caret line="17" column="38" selection-start-line="17" selection-start-column="38" selection-end-line="17" selection-end-column="38" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -806,7 +739,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.5955056">
           <caret line="57" column="21" selection-start-line="57" selection-start-column="21" selection-end-line="57" selection-end-column="21" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -814,9 +746,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.43820226">
           <caret line="27" column="33" selection-start-line="27" selection-start-column="33" selection-end-line="27" selection-end-column="33" />
-          <folding>
-            <element signature="e#574#592#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -824,7 +753,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="1.1460674">
           <caret line="34" column="0" selection-start-line="34" selection-start-column="0" selection-end-line="34" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -832,7 +760,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
