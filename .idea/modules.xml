@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/../rcd/.idea/rcd.iml" filepath="$PROJECT_DIR$/../rcd/.idea/rcd.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/rcd-working.iml" filepath="$PROJECT_DIR$/.idea/rcd-working.iml" />
-    </modules>
-  </component>
-</project>
