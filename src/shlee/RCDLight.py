@@ -475,6 +475,7 @@ def runRCDLight(schema, citest, hopThreshold):
     return rcdl.orientedDependencies
 
 
+
 # This example is given in the AAAI paper
 def incompleteness_example():
     schema = Schema()
