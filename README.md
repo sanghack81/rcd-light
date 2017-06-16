@@ -1,4 +1,5 @@
-###Relational Causal Discovery Light (RCD-Light)
+Relational Causal Discovery Light (RCD-Light)
+==
 
 
 This adds a new algorithm called Relational Causal Discovery Light to the existing software Relational Causal Discovery (RCD, Maier et al. 2013) developed by developed by the Knowledge Discovery Laboratory at the University of Massachusetts Amherst. The original software is available from [here](https://kdl.cs.umass.edu/display/public/Relational+Causal+Discovery)
