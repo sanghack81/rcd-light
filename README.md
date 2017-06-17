@@ -6,6 +6,8 @@ This adds a new algorithm called Relational Causal Discovery Light to the existi
 
 Packages under `causality` includes some modified source files originally from RCD for new features and performance improvements. Packages under `shlee` contains new sources for RCD-Light.
 
+Please checkout [pyRCDs](https://github.com/sanghack81/pyRCDs), which is the successor of RCD-light.
+
 ----------
 **References**
 
