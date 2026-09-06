@@ -264,8 +264,8 @@ class Ancestral:
         if ancestor in self.ans[x]:
             return
 
-        dedes = self.des[x]
-        anans = self.ans[ancestor]
+        dedes = self.des[x] | {x}
+        anans = self.ans[ancestor] | {ancestor}
 
         for dede in dedes:
             self.ans[dede] |= anans
